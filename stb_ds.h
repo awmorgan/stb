@@ -547,9 +547,6 @@ stbds_array_header *stbds_header(void *t) {
   return ((stbds_array_header *)(t)-1);
 }
 
-#define stbds_arrsetcap(a, n)                                                  \
-  (((a) = stbds_arrgrowf((a), sizeof *(a), (0), (n))))
-
 #define stbds_arrsetlen(a, n)                                                  \
   ((stbds_arrcap(a) < (size_t)(n)                                              \
     ? (((a) = stbds_arrgrowf((a), sizeof *(a), (0), ((size_t)n)))),            \
