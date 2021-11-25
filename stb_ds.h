@@ -738,7 +738,8 @@ enum { STBDS_SH_NONE, STBDS_SH_DEFAULT, STBDS_SH_STRDUP, STBDS_SH_ARENA };
 #define stbds_hmput_key_wrapper stbds_hmput_key
 #define stbds_hmdel_key_wrapper stbds_hmdel_key
 #define stbds_shmode_func_wrapper(t, e, m) stbds_shmode_func(e, m)
-#endif
+
+#endif // INCLUDE_STB_DS_H
 
 //////////////////////////////////////////////////////////////////////////////
 //
