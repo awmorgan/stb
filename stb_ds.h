@@ -543,7 +543,9 @@ typedef struct {
   ptrdiff_t temp;
 } stbds_array_header;
 
-#define stbds_header(t) ((stbds_array_header *)(t)-1)
+stbds_array_header *stbds_header(void *t) {
+  return ((stbds_array_header *)(t)-1);
+}
 #define stbds_temp(t) stbds_header(t)->temp
 #define stbds_temp_key(t) (*(char **)stbds_header(t)->hash_table)
 
@@ -708,7 +710,6 @@ typedef struct {
 #define stbds_shgetp_null(t, k)                                                \
   (stbds_shgeti(t, k) == -1 ? NULL : &(t)[stbds_temp((t)-1)])
 #define stbds_shlen stbds_hmlen
-
 
 typedef struct stbds_string_block {
   struct stbds_string_block *next;
