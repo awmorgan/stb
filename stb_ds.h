@@ -1465,7 +1465,7 @@ void *stbds_hmput_key(void *a, size_t elemsize, void *key, size_t keysize,
                                  bucket->index[i])) {
             stbds_header(a)->temp = bucket->index[i];
             if (mode >= STBDS_HM_STRING)
-              stbds_temp_key(a) =
+              (*(char **)stbds_header(a)->hash_table) =
                   *(char **)((char *)raw_a + elemsize * bucket->index[i] +
                              keyoffset);
             return STBDS_ARR_TO_HASH(a, elemsize);
@@ -1526,15 +1526,17 @@ void *stbds_hmput_key(void *a, size_t elemsize, void *key, size_t keysize,
 
       switch (table->string.mode) {
       case STBDS_SH_STRDUP:
-        stbds_temp_key(a) = *(char **)((char *)a + elemsize * i) =
-            stbds_strdup((char *)key);
+        (*(char **)stbds_header(a)->hash_table) =
+            *(char **)((char *)a + elemsize * i) = stbds_strdup((char *)key);
         break;
       case STBDS_SH_ARENA:
-        stbds_temp_key(a) = *(char **)((char *)a + elemsize * i) =
-            stbds_stralloc(&table->string, (char *)key);
+        (*(char **)stbds_header(a)->hash_table) =
+            *(char **)((char *)a + elemsize * i) =
+                stbds_stralloc(&table->string, (char *)key);
         break;
       case STBDS_SH_DEFAULT:
-        stbds_temp_key(a) = *(char **)((char *)a + elemsize * i) = (char *)key;
+        (*(char **)stbds_header(a)->hash_table) =
+            *(char **)((char *)a + elemsize * i) = (char *)key;
         break;
       default:
         memcpy((char *)a + elemsize * i, key, keysize);
