@@ -518,8 +518,6 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
 #endif
 #endif
 
-#define STBDS_ADDRESSOF(typevar, value)     &(value)
-
 #define STBDS_OFFSETOF(var,field)           ((char *) &(var)->field - (char *) (var))
 
 #define stbds_header(t)  ((stbds_array_header *) (t) - 1)
@@ -552,7 +550,7 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
 #define stbds_arrgrow(a,b,c)   ((a) = stbds_arrgrowf_wrapper((a), sizeof *(a), (b), (c)))
 
 #define stbds_hmput(t, k, v) \
-    ((t) = stbds_hmput_key_wrapper((t), sizeof *(t), (void*) STBDS_ADDRESSOF((t)->key, (k)), sizeof (t)->key, 0),   \
+    ((t) = stbds_hmput_key_wrapper((t), sizeof *(t), (void*) &(k), sizeof (t)->key, 0),   \
      (t)[stbds_temp((t)-1)].key = (k),    \
      (t)[stbds_temp((t)-1)].value = (v))
 
@@ -561,11 +559,11 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
      (t)[stbds_temp((t)-1)] = (s))
 
 #define stbds_hmgeti(t,k) \
-    ((t) = stbds_hmget_key_wrapper((t), sizeof *(t), (void*) STBDS_ADDRESSOF((t)->key, (k)), sizeof (t)->key, STBDS_HM_BINARY), \
+    ((t) = stbds_hmget_key_wrapper((t), sizeof *(t), (void*) &(k), sizeof (t)->key, STBDS_HM_BINARY), \
       stbds_temp((t)-1))
 
 #define stbds_hmgeti_ts(t,k,temp) \
-    ((t) = stbds_hmget_key_ts_wrapper((t), sizeof *(t), (void*) STBDS_ADDRESSOF((t)->key, (k)), sizeof (t)->key, &(temp), STBDS_HM_BINARY), \
+    ((t) = stbds_hmget_key_ts_wrapper((t), sizeof *(t), (void*) &(k), sizeof (t)->key, &(temp), STBDS_HM_BINARY), \
       (temp))
 
 #define stbds_hmgetp(t, k) \
@@ -575,7 +573,7 @@ extern void * stbds_shmode_func(size_t elemsize, int mode);
     ((void) stbds_hmgeti_ts(t,k,temp), &(t)[temp])
 
 #define stbds_hmdel(t,k) \
-    (((t) = stbds_hmdel_key_wrapper((t),sizeof *(t), (void*) STBDS_ADDRESSOF((t)->key, (k)), sizeof (t)->key, STBDS_OFFSETOF((t),key), STBDS_HM_BINARY)),(t)?stbds_temp((t)-1):0)
+    (((t) = stbds_hmdel_key_wrapper((t),sizeof *(t), (void*) &(k), sizeof (t)->key, STBDS_OFFSETOF((t),key), STBDS_HM_BINARY)),(t)?stbds_temp((t)-1):0)
 
 #define stbds_hmdefault(t, v) \
     ((t) = stbds_hmput_default_wrapper((t), sizeof *(t)), (t)[-1].value = (v))
