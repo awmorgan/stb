@@ -549,8 +549,11 @@ stbds_array_header *stbds_header(void *t) {
 
 #define stbds_arrsetcap(a, n)                                                  \
   (((a) = stbds_arrgrowf((a), sizeof *(a), (0), (n))))
+
 #define stbds_arrsetlen(a, n)                                                  \
-  ((stbds_arrcap(a) < (size_t)(n) ? stbds_arrsetcap((a), (size_t)(n)), 0 : 0), \
+  ((stbds_arrcap(a) < (size_t)(n)                                              \
+    ? (((a) = stbds_arrgrowf((a), sizeof *(a), (0), ((size_t)n)))),            \
+    0 : 0),                                                                    \
    (a) ? stbds_header(a)->length = (size_t)(n) : 0)
 #define stbds_arrcap(a) ((a) ? stbds_header(a)->capacity : 0)
 #define stbds_arrlen(a) ((a) ? (ptrdiff_t)stbds_header(a)->length : 0)
