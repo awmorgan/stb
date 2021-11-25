@@ -546,13 +546,13 @@ typedef struct {
 stbds_array_header *stbds_header(void *t) {
   return ((stbds_array_header *)(t)-1);
 }
+size_t stbds_arrcap(void *a) { return ((a) ? stbds_header(a)->capacity : 0); }
 
 #define stbds_arrsetlen(a, n)                                                  \
   ((stbds_arrcap(a) < (size_t)(n)                                              \
     ? (((a) = stbds_arrgrowf((a), sizeof *(a), (0), ((size_t)n)))),            \
     0 : 0),                                                                    \
    (a) ? stbds_header(a)->length = (size_t)(n) : 0)
-#define stbds_arrcap(a) ((a) ? stbds_header(a)->capacity : 0)
 #define stbds_arrlen(a) ((a) ? (ptrdiff_t)stbds_header(a)->length : 0)
 #define stbds_arrlenu(a) ((a) ? stbds_header(a)->length : 0)
 #define stbds_arrput(a, v)                                                     \
