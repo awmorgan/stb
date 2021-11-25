@@ -536,6 +536,12 @@ extern void *stbds_shmode_func(size_t elemsize, int mode);
 #endif
 
 #define STBDS_OFFSETOF(var, field) ((char *)&(var)->field - (char *)(var))
+typedef struct {
+  size_t length;
+  size_t capacity;
+  void *hash_table;
+  ptrdiff_t temp;
+} stbds_array_header;
 
 #define stbds_header(t) ((stbds_array_header *)(t)-1)
 #define stbds_temp(t) stbds_header(t)->temp
@@ -703,12 +709,6 @@ extern void *stbds_shmode_func(size_t elemsize, int mode);
   (stbds_shgeti(t, k) == -1 ? NULL : &(t)[stbds_temp((t)-1)])
 #define stbds_shlen stbds_hmlen
 
-typedef struct {
-  size_t length;
-  size_t capacity;
-  void *hash_table;
-  ptrdiff_t temp;
-} stbds_array_header;
 
 typedef struct stbds_string_block {
   struct stbds_string_block *next;
