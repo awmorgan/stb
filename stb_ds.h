@@ -659,9 +659,11 @@ stbds_array_header *stbds_header(void *t) {
   ((t) = stbds_hmput_key((t), sizeof *(t), (void *)(s).key, sizeof(s).key,     \
                          STBDS_HM_STRING),                                     \
    (t)[stbds_header((t)-1)->temp] = (s),                                       \
-   (t)[stbds_header((t)-1)->temp].key = stbds_temp_key(                        \
-       (t)-1)) // above line overwrites whole structure, so must rewrite key
-               // here if it was allocated internally
+   (t)[stbds_header((t)-1)->temp].key =                                        \
+       (*(char **)stbds_header((t)-1)                                          \
+             ->hash_table)) // above line overwrites whole structure, so must
+                            // rewrite key
+                            // here if it was allocated internally
 
 #define stbds_pshput(t, p)                                                     \
   ((t) = stbds_hmput_key((t), sizeof *(t), (void *)(p)->key, sizeof(p)->key,   \
