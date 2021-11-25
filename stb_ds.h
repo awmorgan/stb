@@ -546,7 +546,6 @@ typedef struct {
 stbds_array_header *stbds_header(void *t) {
   return ((stbds_array_header *)(t)-1);
 }
-#define stbds_temp_key(t) (*(char **)stbds_header(t)->hash_table)
 
 #define stbds_arrsetcap(a, n) (stbds_arrgrow(a, 0, n))
 #define stbds_arrsetlen(a, n)                                                  \
