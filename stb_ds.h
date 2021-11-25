@@ -594,7 +594,7 @@ stbds_array_header *stbds_header(void *t) {
        : 0)
 
 #define stbds_arrgrow(a, b, c)                                                 \
-  ((a) = stbds_arrgrowf_wrapper((a), sizeof *(a), (b), (c)))
+  ((a) = stbds_arrgrowf((a), sizeof *(a), (b), (c)))
 
 #define stbds_hmput(t, k, v)                                                   \
   ((t) = stbds_hmput_key_wrapper((t), sizeof *(t), (void *)&(k),               \
@@ -731,7 +731,6 @@ struct stbds_string_arena {
 
 enum { STBDS_SH_NONE, STBDS_SH_DEFAULT, STBDS_SH_STRDUP, STBDS_SH_ARENA };
 
-#define stbds_arrgrowf_wrapper stbds_arrgrowf
 #define stbds_hmget_key_wrapper stbds_hmget_key
 #define stbds_hmget_key_ts_wrapper stbds_hmget_key_ts
 #define stbds_hmput_default_wrapper stbds_hmput_default
