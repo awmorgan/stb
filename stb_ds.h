@@ -613,7 +613,6 @@ size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n) {
   return stbds_arrlen(a);
 }
 
-#define stbds_arraddnoff stbds_arraddnindex
 #define stbds_arrlast(a) ((a)[stbds_header(a)->length - 1])
 #define stbds_arrfree(a)                                                       \
   ((void)((a) ? STBDS_FREE(NULL, stbds_header(a)) : (void)0), (a) = NULL)
