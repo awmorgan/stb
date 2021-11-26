@@ -574,7 +574,7 @@ size_t stbds_arrlenu(void *a) {
 }
 
 #define stbds_arrput(a, s, v)                                                  \
-  (stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
+  ((a) = stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
 #define stbds_arrpush stbds_arrput // synonym
 #define stbds_arrpop(a)                                                        \
   (stbds_header(a)->length--, (a)[stbds_header(a)->length])
@@ -582,11 +582,11 @@ size_t stbds_arrlenu(void *a) {
   ((void)(stbds_arraddnindex(                                                  \
       a, s, n))) // deprecated, use one of the following instead:
 #define stbds_arraddnptr(a, s, n)                                              \
-  (stbds_arrmaybegrow(a, s, n),                                                \
+  ((a) = stbds_arrmaybegrow(a, s, n),                                          \
    (n) ? (stbds_header(a)->length += (n), &(a)[stbds_header(a)->length - (n)]) \
        : (a))
 #define stbds_arraddnindex(a, s, n)                                            \
-  (stbds_arrmaybegrow(a, s, n),                                                \
+  ((a) = stbds_arrmaybegrow(a, s, n),                                          \
    (n) ? (stbds_header(a)->length += (n), stbds_header(a)->length - (n))       \
        : stbds_arrlen(a))
 #define stbds_arraddnoff stbds_arraddnindex
@@ -606,30 +606,21 @@ size_t stbds_arrlenu(void *a) {
            sizeof *(a) * (stbds_header(a)->length - (n) - (i))))
 #define stbds_arrins(a, s, i, v) (stbds_arrinsn((a), (s), (i), 1), (a)[i] = (v))
 
-// #define stbds_arrmaybegrow(a, s, n)                                               \
+// #define stbds_arrmaybegrow(a, s, n)                                            \
 //   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
-//        ? (((a) = stbds_arrgrowf((a), sizeof *(a), (n), (0))), 0)               \
+//        ? (((a) = stbds_arrgrowf((a), (s), (n), (0))), 0)                       \
 //        : 0)
-void stdbds_set_elemsize(void *a, size_t elemsize) {
-  if (a == NULL) {
-    return;
+void *stbds_arrmaybegrow(void *a, size_t elemsize, size_t n) {
+  if (!a) {
+    a = stbds_arrgrowf(a, elemsize, n, 0);
+    return a;
   }
   stbds_array_header *h = stbds_header(a);
-  h->elemsize = elemsize;
+  if (h->length + n > h->capacity) {
+    a = stbds_arrgrowf(a, elemsize, n, 0);
+  }
+  return a;
 }
-
-// void *stbds_arrmaybegrow(void *a, size_t n) {
-//   stbds_array_header *h = stbds_header(a);
-//   if (h->length + n > h->capacity) {
-//     a = stbds_arrgrowf(a, h->elemsize, n, 0);
-//   }
-//   return a;
-// }
-
-#define stbds_arrmaybegrow(a, s, n)                                            \
-  ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
-       ? (((a) = stbds_arrgrowf((a), (s), (n), (0))), 0)                       \
-       : 0)
 
 #define stbds_hmput(t, k, v)                                                   \
   ((t) = stbds_hmput_key((t), sizeof *(t), (void *)&(k), sizeof(t)->key, 0),   \
@@ -835,6 +826,7 @@ void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen, size_t min_cap) {
     STBDS_STATS(++stbds_array_grow);
   }
   stbds_header(b)->capacity = min_cap;
+  stbds_header(b)->elemsize = elemsize;
 
   return b;
 }
