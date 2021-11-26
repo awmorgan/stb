@@ -539,6 +539,7 @@ extern void *stbds_shmode_func(size_t elemsize, int mode);
 typedef struct {
   size_t length;
   size_t capacity;
+  size_t elemsize;
   void *hash_table;
   ptrdiff_t temp;
 } stbds_array_header;
@@ -572,20 +573,20 @@ size_t stbds_arrlenu(void *a) {
   return h->length;
 }
 
-#define stbds_arrput(a, v)                                                     \
-  (stbds_arrmaybegrow(a, 1), (a)[stbds_header(a)->length++] = (v))
+#define stbds_arrput(a, s, v)                                                  \
+  (stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
 #define stbds_arrpush stbds_arrput // synonym
 #define stbds_arrpop(a)                                                        \
   (stbds_header(a)->length--, (a)[stbds_header(a)->length])
-#define stbds_arraddn(a, n)                                                    \
+#define stbds_arraddn(a, s, n)                                                 \
   ((void)(stbds_arraddnindex(                                                  \
-      a, n))) // deprecated, use one of the following instead:
-#define stbds_arraddnptr(a, n)                                                 \
-  (stbds_arrmaybegrow(a, n),                                                   \
+      a, s, n))) // deprecated, use one of the following instead:
+#define stbds_arraddnptr(a, s, n)                                              \
+  (stbds_arrmaybegrow(a, s, n),                                                \
    (n) ? (stbds_header(a)->length += (n), &(a)[stbds_header(a)->length - (n)]) \
        : (a))
-#define stbds_arraddnindex(a, n)                                               \
-  (stbds_arrmaybegrow(a, n),                                                   \
+#define stbds_arraddnindex(a, s, n)                                            \
+  (stbds_arrmaybegrow(a, s, n),                                                \
    (n) ? (stbds_header(a)->length += (n), stbds_header(a)->length - (n))       \
        : stbds_arrlen(a))
 #define stbds_arraddnoff stbds_arraddnindex
@@ -599,20 +600,35 @@ size_t stbds_arrlenu(void *a) {
    stbds_header(a)->length -= (n))
 #define stbds_arrdelswap(a, i)                                                 \
   ((a)[i] = stbds_arrlast(a), stbds_header(a)->length -= 1)
-#define stbds_arrinsn(a, i, n)                                                 \
-  (stbds_arraddn((a), (n)),                                                    \
+#define stbds_arrinsn(a, s, i, n)                                              \
+  (stbds_arraddn((a), (s), (n)),                                               \
    memmove(&(a)[(i) + (n)], &(a)[i],                                           \
            sizeof *(a) * (stbds_header(a)->length - (n) - (i))))
-#define stbds_arrins(a, i, v) (stbds_arrinsn((a), (i), 1), (g)[i] = (v))
+#define stbds_arrins(a, s, i, v) (stbds_arrinsn((a), (s), (i), 1), (a)[i] = (v))
 
-
-// #define stbds_arrmaybegrow(a, n)                                               \
+// #define stbds_arrmaybegrow(a, s, n)                                               \
 //   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
 //        ? (((a) = stbds_arrgrowf((a), sizeof *(a), (n), (0))), 0)               \
 //        : 0)
-#define stbds_arrmaybegrow(a, n)                                               \
+void stdbds_set_elemsize(void *a, size_t elemsize) {
+  if (a == NULL) {
+    return;
+  }
+  stbds_array_header *h = stbds_header(a);
+  h->elemsize = elemsize;
+}
+
+// void *stbds_arrmaybegrow(void *a, size_t n) {
+//   stbds_array_header *h = stbds_header(a);
+//   if (h->length + n > h->capacity) {
+//     a = stbds_arrgrowf(a, h->elemsize, n, 0);
+//   }
+//   return a;
+// }
+
+#define stbds_arrmaybegrow(a, s, n)                                            \
   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
-       ? (((a) = stbds_arrgrowf((a), sizeof *(a), (n), (0))), 0)               \
+       ? (((a) = stbds_arrgrowf((a), (s), (n), (0))), 0)                       \
        : 0)
 
 #define stbds_hmput(t, k, v)                                                   \
