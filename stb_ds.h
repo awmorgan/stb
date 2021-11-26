@@ -544,15 +544,34 @@ typedef struct {
 } stbds_array_header;
 
 stbds_array_header *stbds_header(void *t) {
-  return ((stbds_array_header *)(t)-1);
+  stbds_array_header *h = t;
+  h--;
+  return h;
 }
-size_t stbds_arrcap(void *a) { return ((a) ? stbds_header(a)->capacity : 0); }
+size_t stbds_arrcap(void *a) {
+  if (a == NULL) {
+    return 0;
+  }
+  stbds_array_header *h = stbds_header(a);
+  return h->capacity;
+}
 
 ptrdiff_t stbds_arrlen(void *a) {
-  return ((a) ? (ptrdiff_t)stbds_header(a)->length : 0);
+  if (a == NULL) {
+    return 0;
+  }
+  stbds_array_header *h = stbds_header(a);
+  return h->length;
 }
 
-#define stbds_arrlenu(a) ((a) ? stbds_header(a)->length : 0)
+size_t stbds_arrlenu(void *a) {
+  if (a == NULL) {
+    return 0;
+  }
+  stbds_array_header *h = stbds_header(a);
+  return h->length;
+}
+
 #define stbds_arrput(a, v)                                                     \
   (stbds_arrmaybegrow(a, 1), (a)[stbds_header(a)->length++] = (v))
 #define stbds_arrpush stbds_arrput // synonym
@@ -584,8 +603,13 @@ ptrdiff_t stbds_arrlen(void *a) {
   (stbds_arraddn((a), (n)),                                                    \
    memmove(&(a)[(i) + (n)], &(a)[i],                                           \
            sizeof *(a) * (stbds_header(a)->length - (n) - (i))))
-#define stbds_arrins(a, i, v) (stbds_arrinsn((a), (i), 1), (a)[i] = (v))
+#define stbds_arrins(a, i, v) (stbds_arrinsn((a), (i), 1), (g)[i] = (v))
 
+
+// #define stbds_arrmaybegrow(a, n)                                               \
+//   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
+//        ? (((a) = stbds_arrgrowf((a), sizeof *(a), (n), (0))), 0)               \
+//        : 0)
 #define stbds_arrmaybegrow(a, n)                                               \
   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
        ? (((a) = stbds_arrgrowf((a), sizeof *(a), (n), (0))), 0)               \
