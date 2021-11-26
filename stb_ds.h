@@ -542,6 +542,7 @@ typedef struct {
   void *hash_table;
   ptrdiff_t temp;
 } stbds_array_header;
+size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n);
 
 stbds_array_header *stbds_header(void *t) {
   stbds_array_header *h = t;
@@ -572,13 +573,7 @@ size_t stbds_arrlenu(void *a) {
   return h->length;
 }
 
-// todo: remove this and add append operation
-// #define stbds_arrpush(a, s, v) \
-//   ((a) = stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
-
-#define stbds_arraddn(a, s, n)                                                 \
-  ((void)(stbds_arraddnindex(                                                  \
-      a, s, n))) // deprecated, use one of the following instead:
+void stbds_arraddn(void *a, size_t s, size_t n) { stbds_arraddnindex(a, s, n); }
 
 void *stbds_arrmaybegrow(void *a, size_t elemsize, size_t n) {
   if (!a) {
