@@ -641,13 +641,18 @@ void stbds_arrdelswap(void *a, size_t i) {
   h->length--;
 }
 
-#define stbds_arrinsn(a, s, i, n)                                              \
-  (stbds_arraddn((a), (s), (n)),                                               \
-   memmove(&(a)[(i) + (n)], &(a)[i],                                           \
-           (s) * (stbds_header(a)->length - (n) - (i))))
+void stbds_arrinsn(void *a, size_t s, size_t i, size_t n) {
+  stbds_arraddn(a, s, n);
+  stbds_array_header *h = stbds_header(a);
+  char *p = (char *)a + i * s;
+  memmove(p + s * n, p, s * (h->length - n - i));
+}
 
-
-#define stbds_arrins(a, s, i, v) (stbds_arrinsn((a), (s), (i), 1), (a)[i] = (v))
+void stbds_arrins(void *a, size_t s, size_t i, void *v) {
+  stbds_arrinsn(a, s, i, 1);
+  char *p = (char *)a + i * s;
+  memcpy(p, v, s);
+}
 
 #define stbds_hmput(t, k, v)                                                   \
   ((t) = stbds_hmput_key((t), sizeof *(t), (void *)&(k), sizeof(t)->key, 0),   \
