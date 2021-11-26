@@ -621,11 +621,18 @@ void * stbds_arrfree(void *a) {
   return a;
 }
 
-#define stbds_arrdel(a, i) stbds_arrdeln(a, i, 1)
-#define stbds_arrdeln(a, i, n)                                                 \
-  (memmove(&(a)[i], &(a)[(i) + (n)],                                           \
-           sizeof *(a) * (stbds_header(a)->length - (n) - (i))),               \
-   stbds_header(a)->length -= (n))
+void stbds_arrdeln( void *a, size_t i, size_t n) {
+  stbds_array_header *h = stbds_header(a);
+  char *p = (char *)a + i * h->elemsize;
+  memmove(p, p + n * h->elemsize,
+          h->elemsize * (h->length - n - i));
+  h->length -= n;
+}
+
+void stbds_arrdel( void *a, size_t i) {
+  stbds_arrdeln(a, i, 1);
+}
+
 #define stbds_arrdelswap(a, i)                                                 \
   ((a)[i] = ((a)[stbds_header(a)->length - 1]), stbds_header(a)->length -= 1)
 #define stbds_arrinsn(a, s, i, n)                                              \
