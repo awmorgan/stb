@@ -644,7 +644,9 @@ void stbds_arrdelswap(void *a, size_t i) {
 #define stbds_arrinsn(a, s, i, n)                                              \
   (stbds_arraddn((a), (s), (n)),                                               \
    memmove(&(a)[(i) + (n)], &(a)[i],                                           \
-           sizeof *(a) * (stbds_header(a)->length - (n) - (i))))
+           (s) * (stbds_header(a)->length - (n) - (i))))
+
+
 #define stbds_arrins(a, s, i, v) (stbds_arrinsn((a), (s), (i), 1), (a)[i] = (v))
 
 #define stbds_hmput(t, k, v)                                                   \
