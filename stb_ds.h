@@ -501,11 +501,18 @@ extern void stbds_unit_tests(void);
 //
 // Everything below here is implementation details
 //
+typedef struct {
+  size_t length;
+  size_t capacity;
+  size_t elemsize;
+  void *hash_table;
+  ptrdiff_t temp;
+} stbds_array_header;
 
-extern void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen,
+extern void *stbds_arrgrowf(stbds_array_header *a, size_t elemsize, size_t addlen,
                             size_t min_cap);
-extern void stbds_arrfreef(void *a);
-extern void stbds_hmfree_func(void *p, size_t elemsize);
+extern void stbds_arrfreef(stbds_array_header *a);
+extern void stbds_hmfree_func(stbds_array_header *p, size_t elemsize);
 extern void *stbds_hmget_key(void *a, size_t elemsize, void *key,
                              size_t keysize, int mode);
 extern void *stbds_hmget_key_ts(void *a, size_t elemsize, void *key,
@@ -535,117 +542,99 @@ extern void *stbds_shmode_func(size_t elemsize, int mode);
 #endif
 
 #define STBDS_OFFSETOF(var, field) ((char *)&(var)->field - (char *)(var))
-typedef struct {
-  size_t length;
-  size_t capacity;
-  size_t elemsize;
-  void *hash_table;
-  ptrdiff_t temp;
-} stbds_array_header;
-size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n);
 
-stbds_array_header *stbds_header(void *t) {
-  stbds_array_header *h = t;
-  h--;
-  return h;
-}
-size_t stbds_arrcap(void *a) {
+// stbds_array_header *stbds_header(void *t) {
+//   stbds_array_header *h = t;
+//   h--;
+//   return h;
+// }
+size_t stbds_arrcap(stbds_array_header *a) {
   if (a == NULL) {
     return 0;
   }
-  stbds_array_header *h = stbds_header(a);
-  return h->capacity;
+  return a->capacity;
 }
 
-ptrdiff_t stbds_arrlen(void *a) {
+ptrdiff_t stbds_arrlen(stbds_array_header *a) {
   if (a == NULL) {
     return 0;
   }
-  stbds_array_header *h = stbds_header(a);
-  return h->length;
+  return a->length;
 }
 
-size_t stbds_arrlenu(void *a) {
+size_t stbds_arrlenu(stbds_array_header *a) {
   if (a == NULL) {
     return 0;
   }
-  stbds_array_header *h = stbds_header(a);
-  return h->length;
+  return a->length;
 }
-
-void stbds_arraddn(void *a, size_t s, size_t n) { stbds_arraddnindex(a, s, n); }
-
-void *stbds_arrmaybegrow(void *a, size_t elemsize, size_t n) {
+void *stbds_arrmaybegrow(stbds_array_header *a, size_t elemsize, size_t n) {
   if (!a) {
     a = stbds_arrgrowf(a, elemsize, n, 0);
     return a;
   }
-  stbds_array_header *h = stbds_header(a);
-  if (h->length + n > h->capacity) {
+  if (a->length + n > a->capacity) {
     a = stbds_arrgrowf(a, elemsize, n, 0);
   }
   return a;
 }
+size_t stbds_arraddnindex(stbds_array_header *a, size_t elemsize, size_t n) {
+  a = stbds_arrmaybegrow(a, elemsize, n);
+  if (n > 0) {
+    a->length += n;
+    return (a->length - n);
+  }
+  return stbds_arrlen(a);
+}
 
-void *stbds_arrpush(void *a, size_t elemsize, void *v) {
+void stbds_arraddn(void *a, size_t s, size_t n) { stbds_arraddnindex(a, s, n); }
+
+
+void *stbds_arrpush(stbds_array_header *a, size_t elemsize, void *v) {
   a = stbds_arrmaybegrow(a, elemsize, 1);
-  stbds_array_header *h = stbds_header(a);
-  char *p = (char *)a + h->length * elemsize;
+  char *p = (char *)a + a->length * elemsize;
   memcpy(p, v, elemsize);
-  h->length++;
+  a->length++;
   return a;
 }
 
-void *stbds_arraddnptr(void *a, size_t elemsize, size_t n) {
+void *stbds_arraddnptr(stbds_array_header *a, size_t elemsize, size_t n) {
   a = stbds_arrmaybegrow(a, elemsize, n);
-  stbds_array_header *h = stbds_header(a);
   if (n > 0) {
-    h->length += n;
-    char *p = (char *)a + (h->length - n) * elemsize;
+    a->length += n;
+    char *p = (char *)a + (a->length - n) * elemsize;
     return p;
   }
   return a;
 }
 
-size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n) {
-  a = stbds_arrmaybegrow(a, elemsize, n);
-  stbds_array_header *h = stbds_header(a);
-  if (n > 0) {
-    h->length += n;
-    return (h->length - n);
-  }
-  return stbds_arrlen(a);
-}
 
 void *stbds_arrfree(void *a) {
   if (a) {
-    STBDS_FREE(NULL, stbds_header(a));
+    STBDS_FREE(NULL, a);
   }
   a = NULL;
   return a;
 }
 
-void stbds_arrdeln(void *a, size_t i, size_t n) {
-  stbds_array_header *h = stbds_header(a);
-  char *p = (char *)a + i * h->elemsize;
-  memmove(p, p + n * h->elemsize, h->elemsize * (h->length - n - i));
-  h->length -= n;
+void stbds_arrdeln(stbds_array_header *a, size_t i, size_t n) {
+  char *p = (char *)a + i * a->elemsize;
+  memmove(p, p + n * a->elemsize, a->elemsize * (a->length - n - i));
+  a->length -= n;
 }
 
 void stbds_arrdel(void *a, size_t i) { stbds_arrdeln(a, i, 1); }
 
-void stbds_arrdelswap(void *a, size_t i) {
-  stbds_array_header *h = stbds_header(a);
-  char *p = (char *)a + i * h->elemsize;
-  memmove(p, p + h->elemsize, h->elemsize * (h->length - i - 1));
-  h->length--;
+void stbds_arrdelswap(stbds_array_header *a, size_t i) {
+  char *p = (char *)a + i * a->elemsize;
+  memmove(p, p + a->elemsize, a->elemsize * (a->length - i - 1));
+  a->length--;
 }
 
-void stbds_arrinsn(void *a, size_t s, size_t i, size_t n) {
+void stbds_arrinsn(stbds_array_header *a, size_t s, size_t i, size_t n) {
   stbds_arraddn(a, s, n);
-  stbds_array_header *h = stbds_header(a);
   char *p = (char *)a + i * s;
-  memmove(p + s * n, p, s * (h->length - n - i));
+  memmove(p + s * n, p, s * (a->length - n - i));
 }
 
 void stbds_arrins(void *a, size_t s, size_t i, void *v) {
@@ -823,11 +812,10 @@ size_t stbds_rehash_items;
 // int *prev_allocs[65536];
 // int num_prev;
 
-void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen, size_t min_cap) {
-  stbds_array_header temp = {0}; // force debugging
-  void *b;
+void *stbds_arrgrowf(stbds_array_header *a, size_t elemsize, size_t addlen,
+                     size_t min_cap) {
+  stbds_array_header *b;
   size_t min_len = stbds_arrlen(a) + addlen;
-  (void)sizeof(temp);
 
   // compute the minimum capacity needed
   if (min_len > min_cap)
@@ -845,19 +833,19 @@ void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen, size_t min_cap) {
   // if (num_prev < 65536) if (a) prev_allocs[num_prev++] = (int *) ((char *)
   // a+1); if (num_prev == 2201)
   //   num_prev = num_prev;
-  b = STBDS_REALLOC(NULL, (a) ? stbds_header(a) : 0,
+  b = STBDS_REALLOC(NULL, a ? a : 0,
                     elemsize * min_cap + sizeof(stbds_array_header));
   // if (num_prev < 65536) prev_allocs[num_prev++] = (int *) (char *) b;
-  b = (char *)b + sizeof(stbds_array_header);
+  // b = (char *)b + sizeof(stbds_array_header);
   if (a == NULL) {
-    stbds_header(b)->length = 0;
-    stbds_header(b)->hash_table = 0;
-    stbds_header(b)->temp = 0;
+    b->length = 0;
+    b->hash_table = 0;
+    b->temp = 0;
   } else {
     STBDS_STATS(++stbds_array_grow);
   }
-  stbds_header(b)->capacity = min_cap;
-  stbds_header(b)->elemsize = elemsize;
+  b->capacity = min_cap;
+  b->elemsize = elemsize;
 
   return b;
 }
@@ -1325,25 +1313,25 @@ static int stbds_is_key_equal(void *a, size_t elemsize, void *key,
 #define STBDS_HASH_TO_ARR(x, elemsize) ((char *)(x) - (elemsize))
 #define STBDS_ARR_TO_HASH(x, elemsize) ((char *)(x) + (elemsize))
 
-#define stbds_hash_table(a) ((stbds_hash_index *)stbds_header(a)->hash_table)
+#define stbds_hash_table(a) ((stbds_hash_index *)a->hash_table)
 
-void stbds_hmfree_func(void *a, size_t elemsize) {
+void stbds_hmfree_func(stbds_array_header *a, size_t elemsize) {
   if (a == NULL)
     return;
   if (stbds_hash_table(a) != NULL) {
     if (stbds_hash_table(a)->string.mode == STBDS_SH_STRDUP) {
       size_t i;
       // skip 0th element, which is default
-      for (i = 1; i < stbds_header(a)->length; ++i)
+      for (i = 1; i < a->length; ++i)
         STBDS_FREE(NULL, *(char **)((char *)a + elemsize * i));
     }
     stbds_strreset(&stbds_hash_table(a)->string);
   }
-  STBDS_FREE(NULL, stbds_header(a)->hash_table);
-  STBDS_FREE(NULL, stbds_header(a));
+  STBDS_FREE(NULL, a->hash_table);
+  STBDS_FREE(NULL, a);
 }
 
-static ptrdiff_t stbds_hm_find_slot(void *a, size_t elemsize, void *key,
+static ptrdiff_t stbds_hm_find_slot(stbds_array_header *a, size_t elemsize, void *key,
                                     size_t keysize, size_t keyoffset,
                                     int mode) {
   void *raw_a = STBDS_HASH_TO_ARR(a, elemsize);
