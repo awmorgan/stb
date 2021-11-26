@@ -606,10 +606,6 @@ size_t stbds_arrlenu(void *a) {
            sizeof *(a) * (stbds_header(a)->length - (n) - (i))))
 #define stbds_arrins(a, s, i, v) (stbds_arrinsn((a), (s), (i), 1), (a)[i] = (v))
 
-// #define stbds_arrmaybegrow(a, s, n)                                            \
-//   ((!(a) || stbds_header(a)->length + (n) > stbds_header(a)->capacity)         \
-//        ? (((a) = stbds_arrgrowf((a), (s), (n), (0))), 0)                       \
-//        : 0)
 void *stbds_arrmaybegrow(void *a, size_t elemsize, size_t n) {
   if (!a) {
     a = stbds_arrgrowf(a, elemsize, n, 0);
