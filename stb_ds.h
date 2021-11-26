@@ -634,8 +634,13 @@ void stbds_arrdeln(void *a, size_t i, size_t n) {
 
 void stbds_arrdel(void *a, size_t i) { stbds_arrdeln(a, i, 1); }
 
-#define stbds_arrdelswap(a, i)                                                 \
-  ((a)[i] = ((a)[stbds_header(a)->length - 1]), stbds_header(a)->length -= 1)
+void stbds_arrdelswap(void *a, size_t i) {
+  stbds_array_header *h = stbds_header(a);
+  char *p = (char *)a + i * h->elemsize;
+  memmove(p, p + h->elemsize, h->elemsize * (h->length - i - 1));
+  h->length--;
+}
+
 #define stbds_arrinsn(a, s, i, n)                                              \
   (stbds_arraddn((a), (s), (n)),                                               \
    memmove(&(a)[(i) + (n)], &(a)[i],                                           \
