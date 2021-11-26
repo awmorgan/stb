@@ -613,7 +613,6 @@ size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n) {
   return stbds_arrlen(a);
 }
 
-#define stbds_arrlast(a) ((a)[stbds_header(a)->length - 1])
 #define stbds_arrfree(a)                                                       \
   ((void)((a) ? STBDS_FREE(NULL, stbds_header(a)) : (void)0), (a) = NULL)
 #define stbds_arrdel(a, i) stbds_arrdeln(a, i, 1)
@@ -622,7 +621,7 @@ size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n) {
            sizeof *(a) * (stbds_header(a)->length - (n) - (i))),               \
    stbds_header(a)->length -= (n))
 #define stbds_arrdelswap(a, i)                                                 \
-  ((a)[i] = stbds_arrlast(a), stbds_header(a)->length -= 1)
+  ((a)[i] = ((a)[stbds_header(a)->length - 1]), stbds_header(a)->length -= 1)
 #define stbds_arrinsn(a, s, i, n)                                              \
   (stbds_arraddn((a), (s), (n)),                                               \
    memmove(&(a)[(i) + (n)], &(a)[i],                                           \
@@ -837,8 +836,6 @@ void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen, size_t min_cap) {
 
   return b;
 }
-
-void stbds_arrfreef(void *a) { STBDS_FREE(NULL, stbds_header(a)); }
 
 //
 // stbds_hm hash table implementation
