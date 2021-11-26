@@ -573,8 +573,8 @@ size_t stbds_arrlenu(void *a) {
 }
 
 // todo: remove this and add append operation
-#define stbds_arrpush(a, s, v)                                                 \
-  ((a) = stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
+// #define stbds_arrpush(a, s, v) \
+//   ((a) = stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
 
 #define stbds_arraddn(a, s, n)                                                 \
   ((void)(stbds_arraddnindex(                                                  \
@@ -589,6 +589,15 @@ void *stbds_arrmaybegrow(void *a, size_t elemsize, size_t n) {
   if (h->length + n > h->capacity) {
     a = stbds_arrgrowf(a, elemsize, n, 0);
   }
+  return a;
+}
+
+void *stbds_arrpush(void *a, size_t elemsize, void *v) {
+  a = stbds_arrmaybegrow(a, elemsize, 1);
+  stbds_array_header *h = stbds_header(a);
+  char *p = (char *)a + h->length * elemsize;
+  memcpy(p, v, elemsize);
+  h->length++;
   return a;
 }
 
@@ -613,7 +622,7 @@ size_t stbds_arraddnindex(void *a, size_t elemsize, size_t n) {
   return stbds_arrlen(a);
 }
 
-void * stbds_arrfree(void *a) {
+void *stbds_arrfree(void *a) {
   if (a) {
     STBDS_FREE(NULL, stbds_header(a));
   }
@@ -621,17 +630,14 @@ void * stbds_arrfree(void *a) {
   return a;
 }
 
-void stbds_arrdeln( void *a, size_t i, size_t n) {
+void stbds_arrdeln(void *a, size_t i, size_t n) {
   stbds_array_header *h = stbds_header(a);
   char *p = (char *)a + i * h->elemsize;
-  memmove(p, p + n * h->elemsize,
-          h->elemsize * (h->length - n - i));
+  memmove(p, p + n * h->elemsize, h->elemsize * (h->length - n - i));
   h->length -= n;
 }
 
-void stbds_arrdel( void *a, size_t i) {
-  stbds_arrdeln(a, i, 1);
-}
+void stbds_arrdel(void *a, size_t i) { stbds_arrdeln(a, i, 1); }
 
 #define stbds_arrdelswap(a, i)                                                 \
   ((a)[i] = ((a)[stbds_header(a)->length - 1]), stbds_header(a)->length -= 1)
