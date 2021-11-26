@@ -99,7 +99,7 @@ DOCUMENTATION
         T arrpop(T* a)
           Removes the final element of the array and returns it.
 
-      arrput:
+      arrpush:
         T arrput(T* a, T b);
           Appends the item b to the end of array a. Returns b.
 
@@ -405,8 +405,7 @@ CREDITS
 #ifndef STBDS_NO_SHORT_NAMES
 #define arrlen stbds_arrlen
 #define arrlenu stbds_arrlenu
-#define arrput stbds_arrput
-#define arrpush stbds_arrput
+#define arrpush stbds_arrpush
 #define arrpop stbds_arrpop
 #define arrfree stbds_arrfree
 #define arraddn stbds_arraddn // deprecated, use one of the following instead:
@@ -573,9 +572,9 @@ size_t stbds_arrlenu(void *a) {
   return h->length;
 }
 
-#define stbds_arrput(a, s, v)                                                  \
+// todo: remove this and add append operation
+#define stbds_arrpush(a, s, v)\
   ((a) = stbds_arrmaybegrow(a, s, 1), (a)[stbds_header(a)->length++] = (v))
-#define stbds_arrpush stbds_arrput // synonym
 #define stbds_arrpop(a)                                                        \
   (stbds_header(a)->length--, (a)[stbds_header(a)->length])
 #define stbds_arraddn(a, s, n)                                                 \
