@@ -110,7 +110,7 @@ static void stblkck_internal_print(const char *reason, stb_leakcheck_malloc_info
    #ifdef __MINGW32__
       __mingw_fprintf(STB_LEAKCHECK_OUTPUT_PIPE, "%s: %s (%4d): %zd bytes at %p\n", reason, mi->file, mi->line, mi->size, (void*)(mi+1));
    #else
-      fprintf(STB_LEAKCHECK_OUTPUT_PIPE, "%s: %s (%4d): %zd bytes at %p\n", reason, mi->file, mi->line, mi->size, (void*)(mi+1));
+      fprintf(STB_LEAKCHECK_OUTPUT_PIPE, "%s: %s:%d: %zd bytes at %p\n", reason, mi->file, mi->line, mi->size, (void*)(mi+1));
    #endif
 #endif
 }
