@@ -822,8 +822,9 @@ void *stbds_arrgrowf(void *a, size_t elemsize, size_t addlen, size_t min_cap) {
   if (min_len > min_cap)
     min_cap = min_len;
 
-  if (min_cap <= stbds_arrcap(a))
+  if (min_cap <= stbds_arrcap(a)) {
     return a;
+  }
 
   // increase needed capacity to guarantee O(1) amortized
   if (min_cap < 2 * stbds_arrcap(a))
@@ -1318,8 +1319,9 @@ static int stbds_is_key_equal(void *a, size_t elemsize, void *key,
 #define stbds_hash_table(a) ((stbds_hash_index *)stbds_header(a)->hash_table)
 
 void stbds_hmfree_func(void *a, size_t elemsize) {
-  if (a == NULL)
+  if (a == NULL) {
     return;
+  }
   if (stbds_hash_table(a) != NULL) {
     if (stbds_hash_table(a)->string.mode == STBDS_SH_STRDUP) {
       size_t i;
