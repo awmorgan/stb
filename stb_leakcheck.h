@@ -9,6 +9,7 @@
 // if we've already included leakcheck before, undefine the macros
 #ifdef malloc
 #undef malloc
+#undef calloc
 #undef free
 #undef realloc
 #endif
@@ -48,6 +49,11 @@ void *stb_leakcheck_malloc(size_t sz, const char *file, int line) {
   mi->size = (int)sz;
   mi_head = mi;
   return mi + 1;
+}
+
+void *stb_leakcheck_calloc(size_t nmemb, size_t sz, const char *file,
+                           int line) {
+  return stb_leakcheck_malloc(nmemb * sz, file, line);
 }
 
 void stb_leakcheck_free(void *ptr) {
@@ -142,10 +148,13 @@ void stb_leakcheck_dumpmem(void) {
 #include <stdlib.h> // we want to define the macros *after* stdlib to avoid a slew of errors
 
 #define malloc(sz) stb_leakcheck_malloc(sz, __FILE__, __LINE__)
+#define calloc(n, sz) stb_leakcheck_calloc(n, sz, __FILE__, __LINE__)
 #define free(p) stb_leakcheck_free(p)
 #define realloc(p, sz) stb_leakcheck_realloc(p, sz, __FILE__, __LINE__)
 
 extern void *stb_leakcheck_malloc(size_t sz, const char *file, int line);
+extern void *stb_leakcheck_calloc(size_t nmemb, size_t sz, const char *file,
+                                  int line);
 extern void *stb_leakcheck_realloc(void *ptr, size_t sz, const char *file,
                                    int line);
 extern void stb_leakcheck_free(void *ptr);
