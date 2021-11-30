@@ -123,12 +123,14 @@ static void stblkck_internal_print(const char *reason,
 #endif
 #endif
 }
-
+size_t total = 0;
 void stb_leakcheck_dumpmem(void) {
   stb_leakcheck_malloc_info *mi = mi_head;
   while (mi) {
-    if ((ptrdiff_t)mi->size >= 0)
+    if ((ptrdiff_t)mi->size >= 0) {
       stblkck_internal_print("LEAKED", mi);
+      total += mi->size;
+    }
     mi = mi->next;
   }
 #ifdef STB_LEAKCHECK_SHOWALL
@@ -139,6 +141,7 @@ void stb_leakcheck_dumpmem(void) {
     mi = mi->next;
   }
 #endif
+  printf("Total leaked: %zd bytes\n", total);
 }
 #endif // STB_LEAKCHECK_IMPLEMENTATION
 
